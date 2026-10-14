@@ -1,20 +1,17 @@
 import { useState } from "react";
 
-function LoginPage({ onLogin }) {
+export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function submit(event) {
-    event.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
     setError("");
     setBusy(true);
 
-    /* Login: pms_admin
-    Password: hotelpms2026
-    */
     if (username === "pms_admin" && password === "hotelpms2026") {
       const userData = { username };
       localStorage.setItem("isAuthenticated", "true");
@@ -24,38 +21,38 @@ function LoginPage({ onLogin }) {
       setError("Invalid username or password. Please try again.");
     }
     setBusy(false);
-  }
+  };
 
   return (
     <main className="login-shell">
-      <form className="login-card" onSubmit={submit}>
+      <form className="login-card" onSubmit={handleSubmit}>
         <p className="eyebrow">Property Hotel Management System (PMS)</p>
         <h1>Account Login</h1>
         <p className="muted">Login as a user or administrator.</p>
 
-        {error && <div className="alert error" style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
+        {error && <div className="alert-error">{error}</div>}
 
         <label>
           Username
           <input
             type="text"
             value={username}
-            onChange={(event) => setUsername(event.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
             placeholder="pms_admin"
             required
           />
         </label>
 
-        <label>
+        <label style={{ position: "relative" }}>
           Password
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Your password"
               required
-              style={{ width: "100%", paddingRight: "3.5rem" }}
+              style={{ paddingRight: "3.5rem" }}
             />
             <button
               type="button"
@@ -67,7 +64,7 @@ function LoginPage({ onLogin }) {
                 border: "none",
                 cursor: "pointer",
                 fontSize: "0.8rem",
-                color: "#666",
+                color: "#64748b",
                 fontWeight: "600"
               }}
             >
@@ -88,5 +85,3 @@ function LoginPage({ onLogin }) {
     </main>
   );
 }
-
-export default LoginPage;

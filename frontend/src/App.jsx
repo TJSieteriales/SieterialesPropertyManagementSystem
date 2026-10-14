@@ -16,9 +16,11 @@ export default function App() {
   const [roomType, setRoomType] = useState('Standard Single');
   const [nightlyRate, setNightlyRate] = useState('');
 
+  // Restore session on mount
   useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    if (isAuthenticated && savedUser) {
       setUser(JSON.parse(savedUser));
       fetchRooms();
     }
@@ -26,11 +28,12 @@ export default function App() {
 
   const fetchRooms = async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await axios.get('http://127.0.0.1:8000/api/rooms');
       setRooms(res.data.rooms || res.data);
     } catch (err) {
-      setError('Failed to fetch rooms from the server.');
+      setError('Failed to fetch rooms from the server. Ensure backend is running.');
     } finally {
       setLoading(false);
     }
@@ -85,49 +88,47 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 relative">
-      <div className="max-w-4xl mx-auto flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Hotel Room Inventory</h1>
-        <button 
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-        >
+    <div className="dashboard-container">
+      <header className="dashboard-header">
+        <h1 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>
+          Hotel Room Inventory
+        </h1>
+        <button onClick={handleLogout} className="danger-button">
           Logout
         </button>
-      </div>
+      </header>
 
-      {error && <div className="max-w-4xl mx-auto mb-4 text-sm text-red-600 bg-red-50 p-3 rounded">{error}</div>}
+      {error && <div className="alert-error">{error}</div>}
 
       {view === 'list' && (
-        <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
-          {loading && <p className="text-gray-500">Loading rooms...</p>}
+        <div className="content-card">
+          {loading && <p className="muted">Loading rooms...</p>}
           
           {!loading && rooms.length === 0 && (
-            <p className="text-gray-500">No rooms found. Click the + button to add one.</p>
+            <p className="muted">No rooms found. Click the + button to add one.</p>
           )}
 
-          <ul className="divide-y divide-gray-200">
+          <ul className="room-list">
             {rooms.map((room) => (
-              <li key={room.id} className="py-3 flex justify-between items-center">
+              <li key={room.id} className="room-item">
                 <div>
                   <button 
                     onClick={() => handleViewDetails(room.id)}
-                    className="font-semibold text-lg text-blue-600 hover:underline text-left"
+                    className="room-link"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                   >
                     Room: {room.room_number}
                   </button>
-                  <span className="ml-4 text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                    {room.room_type}
-                  </span>
+                  <span className="room-badge">{room.room_type}</span>
                 </div>
-                <span className="text-green-600 font-bold">${room.nightly_rate} / night</span>
+                <span className="room-price">${room.nightly_rate} / night</span>
               </li>
             ))}
           </ul>
 
           <button 
             onClick={() => setView('add')} 
-            className="fixed bottom-8 right-8 bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-3xl hover:bg-blue-700 transition"
+            className="fab"
             title="Add Room"
           >
             +
@@ -136,58 +137,50 @@ export default function App() {
       )}
 
       {view === 'add' && (
-        <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Add New Room</h2>
+        <div className="content-card" style={{ maxWidth: '500px', margin: '0 auto' }}>
+          <h2 style={{ marginTop: 0, fontSize: '1.5rem', fontWeight: '800', marginBottom: '1.5rem' }}>Add New Room</h2>
           <form onSubmit={handleAddRoom}>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Room Number</label>
+            <label>
+              Room Number
               <input 
                 type="text" 
                 value={roomNumber}
                 onChange={(e) => setRoomNumber(e.target.value)}
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                placeholder="e.g. 101"
                 required
               />
-            </div>
+            </label>
 
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Room Type / Category</label>
+            <label>
+              Room Type / Category
               <select 
                 value={roomType}
                 onChange={(e) => setRoomType(e.target.value)}
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
               >
                 <option value="Standard Single">Standard Single</option>
                 <option value="Deluxe Double">Deluxe Double</option>
                 <option value="Executive Suite">Executive Suite</option>
                 <option value="Penthouse">Penthouse</option>
               </select>
-            </div>
+            </label>
 
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Nightly Rate ($)</label>
+            <label>
+              Nightly Rate ($)
               <input 
                 type="number" 
                 step="0.01"
                 value={nightlyRate}
                 onChange={(e) => setNightlyRate(e.target.value)}
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                placeholder="150.00"
                 required
               />
-            </div>
+            </label>
 
-            <div className="flex gap-4">
-              <button 
-                type="submit" 
-                className="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition"
-              >
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <button type="submit" className="primary-button full-width">
                 Save Room
               </button>
-              <button 
-                type="button" 
-                onClick={() => setView('list')}
-                className="flex-1 bg-gray-400 text-white py-2 rounded font-bold hover:bg-gray-500 transition"
-              >
+              <button type="button" onClick={() => setView('list')} className="secondary-button full-width">
                 Back
               </button>
             </div>
@@ -196,19 +189,16 @@ export default function App() {
       )}
 
       {view === 'details' && selectedRoom && (
-        <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Room Details</h2>
-          <div className="space-y-4 mb-6 text-gray-700">
-            <div><span className="font-bold">Room ID:</span> {selectedRoom.id}</div>
-            <div><span className="font-bold">Room Number:</span> {selectedRoom.room_number}</div>
-            <div><span className="font-bold">Room Type:</span> {selectedRoom.room_type}</div>
-            <div><span className="font-bold">Nightly Rate:</span> ${selectedRoom.nightly_rate}</div>
-            <div><span className="font-bold">Created At:</span> {new Date(selectedRoom.created_at).toLocaleString()}</div>
+        <div className="content-card" style={{ maxWidth: '500px', margin: '0 auto' }}>
+          <h2 style={{ marginTop: 0, fontSize: '1.5rem', fontWeight: '800', marginBottom: '1.5rem' }}>Room Details</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem', color: '#334155' }}>
+            <div><strong>Room ID:</strong> {selectedRoom.id}</div>
+            <div><strong>Room Number:</strong> {selectedRoom.room_number}</div>
+            <div><strong>Room Type:</strong> {selectedRoom.room_type}</div>
+            <div><strong>Nightly Rate:</strong> ${selectedRoom.nightly_rate}</div>
+            <div><strong>Created At:</strong> {new Date(selectedRoom.created_at).toLocaleString()}</div>
           </div>
-          <button 
-            onClick={() => setView('list')}
-            className="w-full bg-gray-600 text-white py-2 rounded font-bold hover:bg-gray-700 transition"
-          >
+          <button onClick={() => setView('list')} className="secondary-button full-width">
             Back to List
           </button>
         </div>
