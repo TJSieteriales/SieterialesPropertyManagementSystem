@@ -1,9 +1,5 @@
 <?php
 
-
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use App\Models\HotelRoom;
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -27,8 +23,8 @@ class HotelRoomController extends Controller
     {
         $data = $request->validate([
             'room_number' => ['required', 'string', 'max:20', 'unique:hotel_rooms,room_number'],
-            'room_type' => ['required', Rule::in(HotelRoom::ROOM_TYPES)],
-            'nightly_rate' => ['required', 'numeric', 'gt:0', 'max:9999999.99'],
+            'room_type' => ['required', Rule::in(['Standard Single', 'Deluxe Double', 'Executive Suite', 'Penthouse'])],
+            'nightly_rate' => ['required', 'numeric', 'gt:0'],
         ]);
 
         $room = HotelRoom::create($data);
