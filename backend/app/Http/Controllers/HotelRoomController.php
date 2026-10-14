@@ -1,5 +1,9 @@
 <?php
 
+
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use App\Models\HotelRoom;
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
