@@ -1,0 +1,66 @@
+﻿services:
+  - type: web
+    name: standby-crud-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL_CA_B64
+        sync: false
+      - key: ADMIN_NAME
+        value: Administrator
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: USER_NAME
+        value: Normal User
+      - key: USER_EMAIL
+        sync: false
+      - key: USER_PASSWORD
+        sync: false
+      - key: FRONTEND_HOST
+        fromService:
+          type: web
+          name: standby-crud-web
+          property: host
+
+  - type: web
+    name: standby-crud-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: standby-crud-api
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
